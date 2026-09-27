@@ -10,7 +10,7 @@ test('Check 6: Access decided by wallet lookup, not flag', async () => {
     }
   });
 
-  const res = await GET(req, { params: { id: 'reel-a' } });
+  const res = await GET(req, { params: Promise.resolve({ id: 'reel-a' }) });
   
   // Should still demand payment
   expect(res.status).toBe(402);

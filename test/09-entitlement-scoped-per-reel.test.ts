@@ -19,7 +19,7 @@ test('Check 9: Entitlement scoped per reel', async () => {
     }
   });
 
-  const res = await GET(req, { params: { id: 'reel-b' } });
+  const res = await GET(req, { params: Promise.resolve({ id: 'reel-b' }) });
   
   // Should demand payment for reel-b
   expect(res.status).toBe(402);

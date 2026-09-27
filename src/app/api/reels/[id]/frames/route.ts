@@ -39,15 +39,18 @@ export async function GET(
     if (!hasAccess && paymentHeader && walletAddress) {
       try {
         const payload = JSON.parse(Buffer.from(paymentHeader, 'base64').toString());
+        const { parseEther } = await import('viem');
         const requirements = {
-          price: reel.price_usd,
+          scheme: 'exact',
+          amount: parseEther(reel.price_usd).toString(),
           asset: 'USDC',
           network: NETWORK,
           payTo: PAY_TO_ADDRESS,
-          resourceId: id,
+          maxTimeoutSeconds: 0,
+          extra: { resourceId: id },
         };
         
-        const result = await facilitatorClient.verify(payload, requirements);
+        const result = await facilitatorClient.verify(payload, requirements as any);
         
         if (result.isValid && payload.resourceId === id) {
           recordPurchase(walletAddress, id, payload.txRef || 'tx_mock', reel.price_usd);
