@@ -45,7 +45,7 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
   async function connectWallet() {
     const win = window as any;
     if (!win.ethereum) {
-      throw new Error('No wallet found. Please install a browser wallet like MetaMask to drop a coin.');
+      throw new Error('No digital purse found. Please install a browser wallet like MetaMask to drop a coin.');
     }
     
     // Check and switch to Base Sepolia (Chain ID: 84532 / 0x14a34)
@@ -57,7 +57,7 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
           params: [{ chainId: '0x14a34' }],
         });
       } catch (e: any) {
-        throw new Error('Please switch your wallet network to Base Sepolia to continue.');
+        throw new Error('Please switch your digital purse network to Base Sepolia to continue.');
       }
     }
 
@@ -88,7 +88,7 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
         body: JSON.stringify({ address: addr, signature, message })
       });
 
-      if (!verifyRes.ok) throw new Error('Wallet Verification failed');
+      if (!verifyRes.ok) throw new Error('Could not verify your purse.');
 
       let frameRes = await fetch(`/api/reels/${id}/frames?index=1`);
       
@@ -107,6 +107,9 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
           resourceId: reqs.requirements.resourceId,
           txRef: txHash
         }));
+
+        // Simulate waiting for on-chain settlement webhook before accessing frames
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         frameRes = await fetch(`/api/reels/${id}/frames?index=1`, {
           headers: { 'X402-Payment': realPayment }

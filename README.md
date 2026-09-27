@@ -37,5 +37,5 @@ To test locally, connect a wallet extension (like MetaMask) on Base Sepolia.
 
 ## Known Limitations
 * **Session Lifetime**: Cookies expire after 24 hours. A user returning after a week will need to re-sign the SIWx challenge (but will *not* have to pay again).
-* **Payment Settlement Gap**: The server synchronously assumes payment success for this demo flow. In production, a webhook or polling mechanism should be used to confirm on-chain settlement before issuing the frames.
+* **Payment Settlement Gap**: The server synchronously assumes payment success for this demo flow, though the frontend simulates a 2.5s webhook settlement wait to mimic real-world confirmation before fetching paid frames. In production, a real webhook or polling mechanism must confirm on-chain settlement before issuing the frames.
 * **Facilitator Uptime**: If the x402.org testnet facilitator is down, new unlocks will fail, though repeat access (SIWx) will still work since it doesn't query the facilitator.
