@@ -13,6 +13,7 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
     params.then(p => setId(p.id));
@@ -34,7 +35,10 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
   async function fetchFrames() {
     try {
       const res = await fetch(`/api/reels/${id}/frames?index=1`);
-      if (res.ok) setError(null);
+      if (res.ok) {
+        setError(null);
+        setIsUnlocked(true);
+      }
     } catch (e) {}
   }
 
@@ -91,6 +95,7 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
 
       if (frameRes.ok) {
         setError(null);
+        setIsUnlocked(true);
       } else {
         throw new Error('Failed to unlock frames. Payment may be required.');
       }
@@ -126,26 +131,33 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400 mb-4">{reel.title}</h2>
           <p className="text-lg text-neutral-400 leading-relaxed font-light">{reel.description}</p>
         </div>
-        <button 
-          onClick={handleUnlock}
-          disabled={loading}
-          className="relative group overflow-hidden bg-amber-600/10 hover:bg-amber-500/20 text-amber-500 hover:text-amber-300 font-serif text-lg py-3 px-8 rounded-full border border-amber-500/50 hover:border-amber-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] disabled:opacity-50 flex-shrink-0"
-        >
-          <span className="relative z-10 flex items-center gap-3">
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-                Processing...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                Unlock Reel • ${reel.price_usd}
-              </>
-            )}
-          </span>
-          <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-        </button>
+        {isUnlocked ? (
+          <div className="relative bg-emerald-950/30 text-emerald-500 font-serif text-lg py-3 px-8 rounded-full border border-emerald-500/30 flex items-center gap-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+            Reel Unlocked
+          </div>
+        ) : (
+          <button 
+            onClick={handleUnlock}
+            disabled={loading}
+            className="relative group overflow-hidden bg-amber-600/10 hover:bg-amber-500/20 text-amber-500 hover:text-amber-300 font-serif text-lg py-3 px-8 rounded-full border border-amber-500/50 hover:border-amber-400 transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] disabled:opacity-50 flex-shrink-0"
+          >
+            <span className="relative z-10 flex items-center gap-3">
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                  Unlock Reel • ${reel.price_usd}
+                </>
+              )}
+            </span>
+            <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+          </button>
+        )}
       </div>
 
       {error && (
