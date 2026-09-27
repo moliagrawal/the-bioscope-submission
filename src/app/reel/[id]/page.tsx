@@ -20,7 +20,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
       setReel(found);
       if (found) {
         // Frame 0 is always free via preview route (Check 2)
-        setFrameUrls([\`/api/reels/\${id}/preview\`]);
+        setFrameUrls([`/api/reels/${id}/preview`]);
         setLoading(false);
       }
     });
@@ -32,7 +32,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
   async function fetchFrames() {
     try {
       // Just test if we can get frame 1
-      const res = await fetch(\`/api/reels/\${id}/frames?index=1\`);
+      const res = await fetch(`/api/reels/${id}/frames?index=1`);
       if (res.ok) {
         // We have access! Load all frame URLs
         // Note: in a real app we might stream them or fetch blobs. 
@@ -69,8 +69,8 @@ export default function ReelPage({ params }: { params: { id: string } }) {
       const { nonce } = await chalRes.json();
 
       // 2. Sign message
-      const message = \`Sign in to access your purchased content\n\nURI: http://localhost:3000\nNonce: \${nonce}\`;
-      const signature = await client.signMessage({ account: addr as \`0x\${string}\`, message });
+      const message = `Sign in to access your purchased content\n\nURI: http://localhost:3000\nNonce: ${nonce}`;
+      const signature = await client.signMessage({ account: addr as `0x${string}`, message });
 
       // 3. Verify and get session
       const verifyRes = await fetch('/api/auth/verify', {
@@ -83,7 +83,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
 
       // 4. Try fetching frame 1 again. 
       // If we already paid in the past, this will succeed!
-      let frameRes = await fetch(\`/api/reels/\${id}/frames?index=1\`);
+      let frameRes = await fetch(`/api/reels/${id}/frames?index=1`);
       
       if (frameRes.status === 402) {
         // 5. If 402, we need to pay. 
@@ -96,7 +96,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
           txRef: 'mock-tx-' + Date.now()
         })).toString('base64');
 
-        frameRes = await fetch(\`/api/reels/\${id}/frames?index=1\`, {
+        frameRes = await fetch(`/api/reels/${id}/frames?index=1`, {
           headers: {
             'X402-Payment': mockPayment
           }
@@ -122,7 +122,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
   const maxFrames = reel.frame_count;
   const currentUrl = currentFrame === 0 
     ? frameUrls[0] 
-    : \`/api/reels/\${id}/frames?index=\${currentFrame}\`; // Browser sends cookie
+    : `/api/reels/${id}/frames?index=${currentFrame}`; // Browser sends cookie
 
   return (
     <div className="space-y-6">
@@ -136,7 +136,7 @@ export default function ReelPage({ params }: { params: { id: string } }) {
           disabled={loading}
           className="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-6 rounded transition-colors disabled:opacity-50"
         >
-          {loading ? 'Processing...' : \`Unlock (\$\${reel.price_usd})\`}
+          {loading ? 'Processing...' : `Unlock ($${reel.price_usd})`}
         </button>
       </div>
 

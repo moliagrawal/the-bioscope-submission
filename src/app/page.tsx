@@ -15,11 +15,11 @@ export default async function Home() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reels.map((reel: any) => (
-          <Link href={\`/reel/\${reel.id}\`} key={reel.id} className="block group">
+          <Link href={`/reel/${reel.id}`} key={reel.id} className="block group">
             <div className="bg-neutral-800 rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-500 transition-colors">
               <div className="aspect-video relative bg-neutral-900">
                 <img 
-                  src={\`/api/reels/\${reel.id}/preview\`} 
+                  src={`/api/reels/${reel.id}/preview`} 
                   alt={reel.title} 
                   className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
                 />
