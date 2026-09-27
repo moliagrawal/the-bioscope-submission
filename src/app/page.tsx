@@ -1,13 +1,15 @@
 import Link from 'next/link';
+import { getAllReels } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const res = await fetch('http://localhost:3000/api/reels', { cache: 'no-store' });
-  let reels = [];
+  let reels: any[] = [];
   try {
-    reels = await res.json();
-  } catch (e) {}
+    reels = getAllReels();
+  } catch (e) {
+    console.error(e);
+  }
 
   return (
     <div className="space-y-10 animate-fade-in">
