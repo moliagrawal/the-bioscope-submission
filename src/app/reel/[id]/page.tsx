@@ -45,9 +45,22 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
   async function connectWallet() {
     const win = window as any;
     if (!win.ethereum) {
-      alert('No browser wallet found (e.g. MetaMask). Install one to continue.');
-      throw new Error('No wallet found');
+      throw new Error('No wallet found. Please install a browser wallet like MetaMask to drop a coin.');
     }
+    
+    // Check and switch to Base Sepolia (Chain ID: 84532 / 0x14a34)
+    const chainId = await win.ethereum.request({ method: 'eth_chainId' });
+    if (chainId !== '0x14a34' && chainId !== 84532) {
+      try {
+        await win.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x14a34' }],
+        });
+      } catch (e: any) {
+        throw new Error('Please switch your wallet network to Base Sepolia to continue.');
+      }
+    }
+
     const client = createWalletClient({ chain: baseSepolia, transport: custom(win.ethereum) });
     const [addr] = await client.requestAddresses();
     setAddress(addr);
