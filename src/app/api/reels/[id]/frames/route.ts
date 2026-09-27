@@ -33,13 +33,18 @@ export async function GET(
     const paymentHeader = request.headers.get('x402-payment');
     if (!hasAccess && paymentHeader && walletAddress) {
       try {
-        // In a real x402 flow, we would verify with the facilitator:
-        // const result = await facilitatorClient.verify(paymentHeader);
-        // We will simulate verification logic that passes if format is correct
         const payload = JSON.parse(Buffer.from(paymentHeader, 'base64').toString());
+        const requirements = {
+          price: reel.price_usd,
+          asset: 'USDC',
+          network: NETWORK,
+          payTo: PAY_TO_ADDRESS,
+          resourceId: id,
+        };
         
-        // Ensure they are paying for this specific reel (Check #9)
-        if (payload.resourceId === id) {
+        const result = await facilitatorClient.verify(payload, requirements);
+        
+        if (result.isValid && payload.resourceId === id) {
           recordPurchase(walletAddress, id, payload.txRef || 'tx_mock', reel.price_usd);
           hasAccess = true;
         }
