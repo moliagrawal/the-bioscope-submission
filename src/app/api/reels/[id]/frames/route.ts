@@ -6,7 +6,7 @@ import { NETWORK, PAY_TO_ADDRESS, facilitatorClient } from '@/lib/x402';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -78,7 +78,7 @@ export async function GET(
       return new NextResponse('Frame not found', { status: 404 });
     }
 
-    return new NextResponse(frame.buffer, {
+    return new NextResponse(new Uint8Array(frame.buffer), {
       headers: {
         'Content-Type': frame.mimeType,
         'Cache-Control': 'private, no-cache',
