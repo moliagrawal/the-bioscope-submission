@@ -3,6 +3,11 @@ import { getSessionFromCookies } from '@/lib/session';
 import { getReel, hasPurchase, recordPurchase } from '@/lib/db';
 import { readPaidFrame } from '@/lib/frames';
 import { NETWORK, PAY_TO_ADDRESS, facilitatorClient } from '@/lib/x402';
+import { createOfferEIP712, createReceiptEIP712 } from '@x402/extensions/offer-receipt';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const DUMMY_KEY = '0x1111111111111111111111111111111111111111111111111111111111111111';
+const signer = privateKeyToAccount((process.env.EVM_PRIVATE_KEY || DUMMY_KEY) as `0x${string}`);
 
 export async function GET(
   request: Request,
@@ -55,6 +60,20 @@ export async function GET(
 
     // 4. Deny access if unpaid (Check #1)
     if (!hasAccess) {
+      const { parseEther } = await import('viem');
+      const offer = await createOfferEIP712(
+        request.url,
+        {
+          acceptIndex: 0,
+          scheme: 'exact',
+          asset: 'USDC',
+          network: NETWORK,
+          amount: parseEther(reel.price_usd).toString(),
+          payTo: PAY_TO_ADDRESS,
+        }, 
+        signer.signTypedData
+      );
+
       // Manual 402 Response returning x402 payment requirements scoped to this reel
       return new NextResponse(
         JSON.stringify({
@@ -65,6 +84,9 @@ export async function GET(
             network: NETWORK,
             payTo: PAY_TO_ADDRESS,
             resourceId: id,
+          },
+          extensions: {
+            'offer-receipt': { offers: [offer] }
           }
         }),
         { 
@@ -83,11 +105,27 @@ export async function GET(
       return new NextResponse('Frame not found', { status: 404 });
     }
 
+    const responseHeaders: Record<string, string> = {
+      'Content-Type': frame.mimeType,
+      'Cache-Control': 'private, no-cache',
+    };
+
+    if (walletAddress) {
+      const receipt = await createReceiptEIP712(
+        {
+          resourceUrl: request.url,
+          payer: walletAddress,
+          network: NETWORK,
+        },
+        signer.signTypedData
+      );
+      responseHeaders['X402-Payment-Response'] = Buffer.from(
+        JSON.stringify({ extensions: { 'offer-receipt': { receipts: [receipt] } } })
+      ).toString('base64');
+    }
+
     return new NextResponse(new Uint8Array(frame.buffer), {
-      headers: {
-        'Content-Type': frame.mimeType,
-        'Cache-Control': 'private, no-cache',
-      },
+      headers: responseHeaders,
     });
   } catch (error) {
     return new NextResponse('Internal Server Error', { status: 500 });
