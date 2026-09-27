@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createWalletClient, custom } from 'viem';
+import { createWalletClient, custom, parseEther } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import Link from 'next/link';
 
@@ -82,14 +82,21 @@ export default function ReelPage({ params }: { params: Promise<{ id: string }> }
       if (frameRes.status === 402) {
         const reqs = await frameRes.json();
         
-        // Simulating the facilitator payload our mock server expects
-        const mockPayment = Buffer.from(JSON.stringify({
+        // 1. Send actual Web3 transaction to the PayTo address
+        const txHash = await client.sendTransaction({
+          account: addr as `0x${string}`,
+          to: reqs.requirements.payTo as `0x${string}`,
+          value: parseEther('0.0001'), // Sending a small demo amount of Base Sepolia ETH
+        });
+
+        // 2. Pass the transaction receipt to the backend
+        const realPayment = btoa(JSON.stringify({
           resourceId: reqs.requirements.resourceId,
-          txRef: 'mock-tx-' + Date.now()
-        })).toString('base64');
+          txRef: txHash
+        }));
 
         frameRes = await fetch(`/api/reels/${id}/frames?index=1`, {
-          headers: { 'X402-Payment': mockPayment }
+          headers: { 'X402-Payment': realPayment }
         });
       }
 
